@@ -107,5 +107,59 @@ myapp.get("/publications/book/:isbn", (req,res)=>{
     return res.json({publications: pubBook})
 })
 
+// to add new book 
+myapp.post("/books/add", (req, res)=>{
+    const {newBook} = req.body
+    database.books.push(newBook)
+    return res.json({Newbook: "Added new book !"})
+})
+
+// to add new author
+myapp.post("/authors/add", (req,res)=>{
+    const {newAuth} = req.body
+    database.authors.push(newAuth)
+    return res.json({Author: "New author added !"})
+})
+
+// to add new publications
+myapp.post("/publications/add", (req,res)=>{
+    const {newPub} = req.body
+    database.publications.push(newPub)
+    return res.json({New_Pub: "New publication added !"})
+})
+
+// to update book details
+myapp.put("/books/update/:isbn", (req,res)=> {
+    database.books.forEach((book)=>{
+        if (book.ISBN === req.params.isbn){
+            book.title = req.body.bookTitle
+            return
+        }
+    })
+    return res.json({Updated_Books: database.books})
+})
+
+// to update new author for book
+myapp.put("/books/update/author/:isbn", (req,res)=> {
+    //update book db
+    database.books.forEach((book)=>{
+        if (book.ISBN === req.params.isbn){
+            return book.authors.push(req.body.newAuthor)
+        }
+    })
+
+    //update author db
+    database.authors.forEach((author)=>{
+        if (author.id === req.body.newAuthor){
+            return author.books.push(req.params.isbn)
+        }
+    })
+    return res.json({
+        books: database.books,
+        authors: database.authors,
+        message: "updated author and books in db !"
+    })
+})
+
 // port connection
 myapp.listen(3000,()=>console.log("Server Running!"));
