@@ -161,5 +161,118 @@ myapp.put("/books/update/author/:isbn", (req,res)=> {
     })
 })
 
+// to update author name using id
+myapp.put("/authors/update/:authId", (req,res)=>{
+    database.authors.forEach((author)=>{
+        if (author.id === parseInt(req.params.authId)){
+            author.name = req.body.authName
+            return
+        }
+    })
+    return res.json({Updated_Author: database.authors})
+})
+
+// to update publication name using id
+myapp.put("publications/update/:id", (req,res)=>{
+    database.publications.forEach((pub)=>{
+        if (pub.id === parseInt(req.params.id)){
+            pub.name = req.body.pubName
+            return
+        }
+    })
+    return res.json({updated_pub: database.publications})
+})
+
+//to update or add new book to publications
+myapp.put("/publications/update/book/:isbn", (req,res)=>{
+    //update pub db
+    database.publications.forEach((publication)=>{
+        if(publication.id === req.body.pubId){
+            return publication.books.push(req.params.isbn)
+        }
+    })
+
+    //update book db
+    database.books.forEach((book)=>{
+        if (book.ISBN === req.params.isbn){
+            book.publication= req.body.pubId
+            return
+        }
+    })
+})
+
+// delete a book
+myapp.delete("/books/delete/:isbn", (req,res)=>{
+    const updatedBookdb = database.books.filter((book)=>{
+        return book.ISBN !== req.params.isbn
+    })
+    database.books = updatedBookdb
+    return res.json({books: database.books})
+})
+
+// delete author from a book
+myapp.delete("/books/delete/author/:isbn/:authorId", (req,res)=>{
+    //update book db
+    database.books.forEach((book)=>{
+        if(book.ISBN === req.params.isbn){
+            const newAuthList = book.authors.filter(
+                (author)=> author !== parseInt(req.params.authorId)
+                )
+                book.authors= newAuthList
+                return
+        }
+    })
+
+    //update author db
+    database.authors.forEach((author)=>{
+        if (author.id === parseInt(req.params.authorId)){
+            const newBookList = author.books.filter(
+                (book)=> book !== req.params.isbn
+            )
+            author.books = newBookList
+            return
+        }
+    })
+    return res.json({bookdb: database.books, authdb: database.authors, deleted: "Author was deleted"})
+}) 
+
+// delete an author 
+myapp.delete("/authors/delete/:id", (req,res)=>{
+    const updatedAuthDb = database.authors.filter((author)=>{
+        return author.id !== parseInt(req.params.id)
+    })
+    database.authors= updatedAuthDb
+    return res.json({updated_authors: database.authors})
+})
+
+// delete a publication
+myapp.delete("publications/delete/:id", (req,res)=>{
+    const updatedPub = database.publications.filter((pub)=>{
+        return pub.id !== parseInt(req.params.id)
+    })
+    database.publications = updatedPub
+    return res.json({deleted_pub: database.publications})
+})
+
+// delete a book from publications
+myapp.delete("/publications/delete/book/:id/:books", (req,res)=>{
+    database.publications.forEach((pub)=>{
+        if(pub.id === parseInt(req.params.id)){
+            const newBookList = pub.books.filter(
+                (book)=> book !== req.params.books 
+            )
+            pub.books = newBookList
+            return
+        }
+    })
+    database.books.forEach((book)=>{
+        if (book.ISBN === req.params.books){
+            book.publication=0;
+            return
+        }
+    })
+    return res.json({message: "deleted publications"})
+})
+
 // port connection
 myapp.listen(3000,()=>console.log("Server Running!"));
